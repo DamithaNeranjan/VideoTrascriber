@@ -22,7 +22,8 @@ model_path = resource_path("models/base")
 model = WhisperModel(
     model_path,
     device="cpu",
-    compute_type="int8"
+    compute_type="int8",
+    cpu_threads=4
 )
 
 
@@ -52,12 +53,14 @@ def transcribe_video():
 def process_transcription():
     try:
         VIDEO_PATH = app.selected_file
-        AUDIO_PATH = "temp_audio.wav"
+        AUDIO_PATH = os.path.join(resource_path("."), "temp_audio.wav")
+
+        ffmpeg_path = resource_path("ffmpeg.exe")
 
         # Extract audio
         ffmpeg.input(VIDEO_PATH).output(
             AUDIO_PATH, ac=1, ar=16000
-        ).overwrite_output().run(quiet=True)
+        ).overwrite_output().run(cmd=ffmpeg_path, quiet=True)
 
         segments, info = model.transcribe(
             AUDIO_PATH,
